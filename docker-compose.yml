@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  web:
+    image: php:apache
+    container_name: maestro
+    volumes:
+      - ./site:/var/www/html
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+
+  db:
+    image: mysql:5.7
+    container_name: maestro_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: senha123
+      MYSQL_DATABASE: maestrodb
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: senha123
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
