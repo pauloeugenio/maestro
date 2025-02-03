@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Dashboard</title>
+    <title>Maestro 0.1</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -19,6 +19,11 @@
 
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
+
+
+    <!-- Adicionado por paulo --> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.3/socket.io.min.js"></script>
+
 
 </head>
 
@@ -575,21 +580,26 @@
                                 <div class="card-body">
                                     
                                     <h1>Maestro - Gerenciamento</h1>
-                                    <button id="executar" class="btn btn-success btn-icon-split">Executar oai_tools.sh</button>
-                                    <pre id="saida"></pre>
-                                
-                                    <script>
-                                        document.getElementById('executar').addEventListener('click', async () => {
-                                            const resposta = await fetch('/executar', { method: 'POST' });
-                                            const dados = await resposta.json();
-                                
-                                            document.getElementById('saida').textContent =
-                                                dados.status === 'success'
-                                                ? dados.saida
-                                                : `Erro: ${dados.mensagem}`;
-                                        });
-                                    </script>
-                                
+<button onclick="executar()">Instalar 5G Core</button>
+
+    <h2>Saída do Script:</h2>
+    <pre id="saida"></pre>
+
+    <script>
+        const socket = io();
+
+        function executar() {
+            const saida = document.getElementById('saida');
+            saida.textContent = "Executando instalação do 5G Core...\n";
+
+            socket.emit('executar_script');
+
+            socket.on('saida', (data) => {
+                saida.textContent += data.mensagem + "\n";
+                saida.scrollTop = saida.scrollHeight;
+            });
+        }
+    </script>                          
 
 
 

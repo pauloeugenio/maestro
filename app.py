@@ -1,26 +1,32 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, send_from_directory
+from flask_socketio import SocketIO, emit
 import subprocess
-import os
 
 app = Flask(__name__, static_folder='site', static_url_path='')
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route('/')
 def index():
-    # Serve o arquivo HTML principal
     return send_from_directory('site', 'index.html')
 
-@app.route('/executar', methods=['POST'])
+@socketio.on('executar_script')
 def executar_script():
     try:
-        # Executa o script Bash e captura a saída
-        resultado = subprocess.run(['./oai_tools.sh'], capture_output=True, text=True, shell=True)
-        return jsonify({
-            'status': 'success',
-            'saida': resultado.stdout,
-            'erro': resultado.stderr
-        })
+        process = subprocess.Popen(
+            ['./oai_5g_core_install.sh'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        for linha in process.stdout:
+            socketio.emit('saida', {'mensagem': linha, 'erro': False})
+        
+        for linha in process.stderr:
+            socketio.emit('saida', {'mensagem': 'ERRO: ' + linha, 'erro': True})
+
     except Exception as e:
-        return jsonify({'status': 'error', 'mensagem': str(e)})
+        socketio.emit('saida', {'mensagem': f'Erro ao executar: {str(e)}', 'erro': True})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
