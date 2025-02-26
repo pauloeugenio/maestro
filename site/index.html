@@ -551,19 +551,19 @@
                                     <h4 class="small font-weight-bold">CPU Server <span
                                             class="float-right">20%</span></h4>
                                     <div class="progress mb-4">
-                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 20%"
+                                        <div class="progress-bar bg-danger" role="progressbar" id="cpuBar" style="width: 20%"
                                             aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                     <h4 class="small font-weight-bold">Memory Usage <span
                                             class="float-right">40%</span></h4>
                                     <div class="progress mb-4">
-                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"
+                                        <div class="progress-bar bg-warning" role="progressbar" id="memoryBar" style="width: 40%"
                                             aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                     <h4 class="small font-weight-bold">Disk Usage <span
                                             class="float-right">60%</span></h4>
                                     <div class="progress mb-4">
-                                        <div class="progress-bar" role="progressbar" style="width: 60%"
+                                        <div class="progress-bar" role="progressbar" id="diskUsageBar" style="width: 60%"
                                             aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                 </div>
@@ -678,7 +678,43 @@
     <!-- Page level custom scripts -->
     <script src="js/demo/chart-area-demo.js"></script>
     <script src="js/demo/chart-pie-demo.js"></script>
-
+    <script>
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('http://172.31.0.13:5001/metrics');
+                const data = await response.json();
+        
+                // Atualiza as barras de progresso
+                updateProgressBar('cpuBar', data.cpu_usage);
+                updateProgressBar('memoryBar', data.memory_usage.percent);
+                updateProgressBar('diskUsageBar', data.disk_usage.percent);
+            } catch (error) {
+                console.error('Erro ao buscar métricas:', error);
+            }
+        }
+        
+        function updateProgressBar(id, value) {
+            const progressBar = document.getElementById(id);
+            if (progressBar) {
+                progressBar.style.width = value + '%';
+                progressBar.setAttribute('aria-valuenow', value);
+                
+                // Atualiza o texto da porcentagem
+                const spanElement = progressBar.parentElement.previousElementSibling.querySelector('.float-right');
+                if (spanElement) {
+                    spanElement.textContent = value + '%';
+                }
+            }
+        }
+        
+        // Atualiza os dados a cada 5 segundos
+        setInterval(fetchMetrics, 5000);
+        
+        // Chama uma vez ao carregar a página
+        fetchMetrics();
+        </script>
+        
 </body>
 
 </html>
+
